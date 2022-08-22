@@ -1,0 +1,46 @@
+.movie-item{
+    position: relative;
+    display: flex;
+    width: 49%;
+    height: 280px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    box-shadow: 0 0 5px 4px rgb(193, 193, 193);
+}
+.item-content{
+    padding: 12px 9px 0px 9px;
+    position: relative;
+    width: 100%;
+}
+.item-title{
+    margin: 0;
+    font-size: 16px
+}
+.item-description{
+    font-size: 12.5px;
+    height: 160px;
+    overflow: hidden;
+}
+.item-premiere{
+    color: #827E7E;
+}
+
+.item-img img{
+    width: 185px;
+    height: 280px;
+}
+.item-stars-rate{
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+}
+.item-rate{
+    position: absolute;
+    right: 20px;
+    top: 15px;
+}
+.item-rate-value{
+    position: relative;
+    left: 3px;
+    top: 1px;
+}

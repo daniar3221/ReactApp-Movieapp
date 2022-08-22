@@ -1,0 +1,16 @@
+body{
+    background-color: #f9f9f9;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+.app{
+    max-width: 1100px;
+    margin: 0 auto;
+    background-color: white;
+    padding: 13px 36px;
+}
+.ant-pagination{
+    text-align: center;
+}
