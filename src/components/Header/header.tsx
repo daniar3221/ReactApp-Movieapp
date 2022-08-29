@@ -7,9 +7,10 @@ import './header.css'
 interface HeaderProps {
     mode: string,
     onMode: any,
+    getMovieName: any
 }
 
-function Header ({ onMode }: HeaderProps){
+function Header ({mode, onMode, getMovieName }: HeaderProps){
 
 
     function changeStyleActive (id: number){
@@ -42,7 +43,12 @@ function Header ({ onMode }: HeaderProps){
                     Rated
                 </button>
             </nav>
-            <SearchInput/>
+            {
+                mode === 'search' ? 
+                <SearchInput getMovieName = {(movieName: any) => {getMovieName(movieName)}}/> 
+                : null
+            }
+            
         </div>
     )
 }

@@ -4,15 +4,20 @@ import './movielist.css'
 
 interface MovielistProps {
     movies: any,
+    forGenres: {id: number, name: string}[],
+    getRateValue: any
 }
 
 
-function Movielist ( { movies }: MovielistProps ){
+function Movielist ( { movies, forGenres, getRateValue }: MovielistProps ){
 
-    const elements = movies.map((item: { id: number; }) => {
+    const elements = movies.map((item: { id: number;}) => {
         return < Movieitem 
-            itemData = {item}
-            key = {item.id} />
+        getRateValue = {(id: number, value: number) => {getRateValue(value, id)}}
+        allGenres = {forGenres}
+        itemData = {item}
+        key = {item.id} />
+         
     })
 
     return (

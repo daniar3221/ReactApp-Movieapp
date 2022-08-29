@@ -4,6 +4,10 @@ import Header from '../Header/header';
 import Movielist from '../Movielist/movielist';
 import { Pagination } from 'antd';
 import service_API from '../services/services';
+import Spinner from '../Spiner/spiner';
+import { getGenres, getMovieByName, rateMovie, newGuestSession, getRatedMovies } from '../services/services'
+
+import { GenresProvider } from '../get-genres-context/get-genres-context';
 
 import IMovie from '../../types/types';
 
@@ -11,6 +15,13 @@ interface IState {
   movies: Array<IMovie>,
   mode: string,
   page: number,
+  loading: boolean,
+  error: boolean,
+  allGenres: any,
+  totalResults: number,
+  searchMovieName: string,
+  guestToken: string,
+  noMoviesFound: boolean,
 }
 
 export default class App extends Component {
@@ -18,7 +29,20 @@ export default class App extends Component {
     movies: [],
     mode: 'search',
     page: 1,
+    loading: true,
+    error: false,
+    allGenres: {
+      genres: [{id: 1, name: ''}]
+    } ,
+    totalResults: 0,
+    searchMovieName: '',
+    guestToken: '',
+    noMoviesFound: false
   } 
+
+  onError = () => {
+    console.log('Something gone wrong')
+  }
 
   changeMode = ( value: string ) => {
     this.setState(() => {
@@ -26,44 +50,118 @@ export default class App extends Component {
         mode: value
       }
     })
-  }
-  changePage = (page: number) => {
-    this.setState({
-      page: page
+    if (value === 'rated'){
+    getRatedMovies(this.state.guestToken)
+    .then(({results}) => {
+      this.setState({
+        movies: results
+      })
     })
-    service_API(this.state.page).then((res) => this.setState({
-      movies: res.results
-    }) )
+    } else{
+      this.changePage(this.state.page)
+    }
   }
 
-  showData(url: RequestInfo | URL){
-    fetch(url).then((res) => res.json()).then((data) => {
+  changePage = (page: number) => {
+    this.setState({
+      page: page,
+      loading: true
+    })
+    
+    service_API(page).then((res) => this.setState({
+      movies: res.results,
+      loading: false
+    }))
+  }
+
+  onSearchMovieName = (movieName: string) => {
+    if (!movieName) {
+      this.setState({
+        noMoviesFound: false
+      })
+      this.changePage(this.state.page)
+    }
+    getMovieByName(movieName).then((data) => {
+      if (data.results.length === 0){
+        this.setState({
+          noMoviesFound: true
+        })
+      } else{
+        this.setState({
+          noMoviesFound: false
+        })
+      }
       this.setState({
         movies: data.results
-    })
-    } )
+      })
+    }).catch(() => {})
+  }
+
+  onRateMovie = (rateValue: number, id: number) =>  {
+    rateMovie(id, rateValue, this.state.guestToken )
   }
 
   componentDidMount(){
-    service_API(1).then((res) => this.setState({
-      movies: res.results
-    }) )
+    newGuestSession().then((sessionID) => {
+      this.setState({
+        guestToken: sessionID.guest_session_id
+      })
+    })
+    service_API(this.state.page).then((res) => this.setState({
+      movies: res.results,
+      loading: false,
+      totalResults: res.total_pages,
+    })).catch(((e) => {
+      this.setState({
+        error: true,
+      })
+    }))
+    getGenres().then((res) => {
+      this.setState({
+        allGenres: res
+      })
+    })
+   
   }
 
+  NoMoviesFoundText = () => {
+    return (
+      <span className='no-movies-span'>Nothing found on your request</span>
+    )
+  }
+
+  
 
   render(){
-    const { movies, mode } = this.state
+    const { movies, mode, loading, allGenres, noMoviesFound} = this.state
+    
     return (
+      
       <div className='app'>
-        < Header mode = { mode } 
-        onMode = {(value: string) => this.changeMode(value)}/>
-        < Movielist  movies = { movies } />
-        < Pagination className='pagination' 
-          onChange={(page) => this.changePage(page)} 
-          defaultCurrent={1} 
-          total={50}
+        <GenresProvider value={this.state.allGenres}>
+          < Header mode = { mode } 
+          onMode = {(value: string) => this.changeMode(value)}
+          getMovieName = {(movieName: string) => {this.onSearchMovieName(movieName)}}
         />
+          
+          {
+          loading ? 
+            < Spinner /> : 
+            noMoviesFound ? 
+            < this.NoMoviesFoundText /> :
+            < Movielist forGenres = {allGenres}  
+              movies = { movies } 
+              getRateValue = {(id: number, rateValue: number) => this.onRateMovie(rateValue, id)}/>
+          }
+          
+          < Pagination className='pagination' 
+            onChange={(page) => this.changePage(page)} 
+            pageSize = {20}
+            total={10000}
+          />
+        </GenresProvider>
     </div>
+
     )
   }
 }
