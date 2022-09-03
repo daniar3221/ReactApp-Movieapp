@@ -17,7 +17,7 @@ class Movieitem extends Component<MovieItemProps> {
 
   keyForGenre = 1
 
-  MoviePoster = (itemData: { poster_path: any }) => {
+  MoviePoster = (itemData: { poster_path: string }) => {
     return (
       <img
         src={`https://image.tmdb.org/t/p/original/${itemData.poster_path}`}
@@ -65,11 +65,11 @@ class Movieitem extends Component<MovieItemProps> {
     )
   }
 
-  PremiereSpan = (itemData: any, premiereYear: any) => {
+  PremiereSpan = ({ release_date }: any) => {
     return (
       <>
-        {format(new Date(itemData.release_date), 'd')}{' '}
-        {format(new Date(itemData.release_date), 'LLLL')}, {premiereYear}
+        {format(new Date(release_date), 'd')}{' '}
+        {format(new Date(release_date), 'LLLL')}, {release_date.slice(0, 4)}
       </>
     )
   }
@@ -107,10 +107,6 @@ class Movieitem extends Component<MovieItemProps> {
       return defaultValue
     }
 
-    const premiereYear = (data: any) => {
-      return data.release_date ? data.release_date.slice(0, 4) : null
-    }
-
     return (
       <div className="movie-item">
         <div className="item-rate" style={rateStyle(itemData)}>
@@ -123,9 +119,7 @@ class Movieitem extends Component<MovieItemProps> {
         </div>
         <div className="item-content">
           <h2 className="item-title">{itemData.title}</h2>
-          {itemData.release_date
-            ? this.PremiereSpan(itemData, premiereYear)
-            : null}
+          {itemData.release_date ? this.PremiereSpan(itemData) : null}
           <div className="item-genres">{this.updateGenres(itemData)}</div>
           <p className="item-description">{itemData.overview}</p>
           <Rate

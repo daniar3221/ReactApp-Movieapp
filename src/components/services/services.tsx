@@ -5,7 +5,6 @@ export const service_API = async (page: number) => {
     `https://api.themoviedb.org/3/discover/movie?page=${page}&${API_KEY}`
   )
   const res = await responce.json()
-  console.log(res)
   return res
 }
 

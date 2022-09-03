@@ -23,7 +23,7 @@ interface IState {
   page: number
   loading: boolean
   error: boolean
-  allGenres: any
+  allGenres: { genres: Array<{ id: number; name: string }> }
   totalResults: number
   searchMovieName: string
   guestToken: string
@@ -54,7 +54,6 @@ export default class App extends Component {
     this.setState({ mode: value })
     if (value === 'rated') {
       getRatedMovies(this.state.guestToken).then(({ results }) => {
-        console.log(results)
         this.setState({
           movies: results,
         })
@@ -171,7 +170,7 @@ export default class App extends Component {
             className="pagination"
             onChange={page => this.changePage(page)}
             pageSize={20}
-            total={10000}
+            total={this.state.totalResults}
             showSizeChanger={false}
           />
         </GenresProvider>
