@@ -1,126 +1,146 @@
-import { Rate } from "antd";
-import React from "react";
+import { Rate } from 'antd'
+import React, { Component } from 'react'
 import './movieitem.css'
-import { compareAsc, format } from 'date-fns'
+import { format } from 'date-fns'
 
-import { GenresConsumer } from '../get-genres-context/get-genres-context';
-
+import { GenresConsumer } from '../get-genres-context/get-genres-context'
 
 interface MovieItemProps {
-    itemData: any,
-    allGenres: any,
-    getRateValue: any
+  itemData: any
+  getRateValue: any
 }
 
-function Movieitem ({ itemData, allGenres, getRateValue } : MovieItemProps, id: number){
+class Movieitem extends Component<MovieItemProps> {
+  state = {
+    rate: 0,
+  }
 
-    
-    
-    const {genres} = allGenres 
+  keyForGenre = 1
 
-    const rateStyle = {
+  MoviePoster = (itemData: { poster_path: any }) => {
+    return (
+      <img
+        src={`https://image.tmdb.org/t/p/original/${itemData.poster_path}`}
+        alt="Poster"
+      />
+    )
+  }
+
+  NoPosterDiv = () => {
+    return (
+      <div className="no-poster">
+        <h1>
+          {' '}
+          NO <br />
+          POSTER
+        </h1>
+      </div>
+    )
+  }
+
+  updateGenres = (itemData: { genre_ids: number[] }) => {
+    return (
+      <GenresConsumer>
+        {({ genres }) => {
+          if (genres === undefined || genres === null) return null
+
+          const genresArr = itemData.genre_ids.map((itemID: number) => {
+            // eslint-disable-next-line no-plusplus
+            this.keyForGenre++
+            const genreNames = genres.map((obj: any) => {
+              if (obj.id === itemID) {
+                return obj.name
+              }
+              return null
+            })
+            return (
+              <span key={this.keyForGenre} className="genre-span">
+                {genreNames}
+              </span>
+            )
+          })
+          return genresArr
+        }}
+      </GenresConsumer>
+    )
+  }
+
+  PremiereSpan = (itemData: any, premiereYear: any) => {
+    return (
+      <>
+        {format(new Date(itemData.release_date), 'd')}{' '}
+        {format(new Date(itemData.release_date), 'LLLL')}, {premiereYear}
+      </>
+    )
+  }
+
+  render() {
+    const { itemData, getRateValue } = this.props
+
+    const ItemImg = () => {
+      return itemData.poster_path
+        ? this.MoviePoster(itemData)
+        : this.NoPosterDiv()
+    }
+
+    const rateStyle = (data: { vote_average: number }) => {
+      return {
         border: '2px solid',
         width: '30px',
         height: '30px',
         borderRadius: '100%',
-        borderColor: itemData.vote_average >= 0 && itemData.vote_average <= 3 ? '#E90000' : 
-        itemData.vote_average >= 3 && itemData.vote_average < 5 ? '#E97E00' : 
-        itemData.vote_average >= 5 && itemData.vote_average < 7 ? '#E9D100' : 
-        itemData.vote_average >= 7 && itemData.vote_average < 10 ? '#66E900': '' 
+        borderColor:
+          data.vote_average >= 0 && data.vote_average <= 3
+            ? '#E90000'
+            : data.vote_average >= 3 && data.vote_average < 5
+            ? '#E97E00'
+            : data.vote_average >= 5 && data.vote_average < 7
+            ? '#E9D100'
+            : data.vote_average >= 7 && data.vote_average < 10
+            ? '#66E900'
+            : '',
+      }
     }
 
-   
- 
-    const PremiereSpan = () => {
-        return(
-            <span className="item-premiere">
-                {format(new Date(itemData.release_date), 'd')} {format(new Date(itemData.release_date), 'LLLL')}, {premiereYear}
-            </span>  
-        )
+    const putValue = () => {
+      const defaultValue = itemData.rating ? itemData.rating : this.state.rate
+      return defaultValue
     }
 
-    const MoviePoster = () => {
-        return (
-            <img src={`https://image.tmdb.org/t/p/original/${itemData.poster_path}`} alt="Poster" />
-        )
+    const premiereYear = (data: any) => {
+      return data.release_date ? data.release_date.slice(0, 4) : null
     }
 
-    const NoPosterDiv = () => {
-        return (
-            <div className="no-poster">
-                <h1>   NO <br />
-                    POSTER
-                 </h1>
-            </div>
-        )
-    }
-
-    const putDefaultValue = () => {
-        const defaultValue = itemData.rating ? itemData.rating : null 
-        return defaultValue
-    }
-
-    const premiereYear = itemData.release_date  ? itemData.release_date.slice(0, 4)  : null
-    let keyForGenre = 1
-
-
-
-    const updateGenres = () => {
-        return (
-            <GenresConsumer>
-                {
-                    ({genres}) =>{
-                        if (genres === undefined) return null
-        
-                            const genresArr = itemData.genre_ids.map((itemID: number) => {
-                                keyForGenre++
-                                const genreNames = genres.map((obj : any) => {
-                                    if (obj['id'] === itemID){
-                                        return obj['name']
-                                    }
-                                    return null
-                                })
-                                return (
-                                    <span key={keyForGenre} className = 'genre-span'>
-                                        {genreNames}
-                                    </span>
-                                )
-                })
-                return genresArr
-                    }
-                }
-            </GenresConsumer>
-        )
-    }
-
-
-
-  
-
-    
-    
-      
     return (
-        <div className="movie-item">
-            <div className="item-rate" style = {rateStyle}>
-                <span className="item-rate-value">{itemData.vote_average.toFixed(1)}</span>
-            </div>
-            <div className="item-img">
-                {itemData.poster_path ? <MoviePoster/> : <NoPosterDiv/>}
-            </div>
-            <div className="item-content">
-                <h2 className="item-title">{itemData.title}</h2>
-                {itemData.release_date ? <PremiereSpan /> : null}
-                <div className="item-genres">{updateGenres()}</div>
-                <p className="item-description">{itemData.overview}</p>
-                <Rate className="item-stars-rate" 
-                    defaultValue = {putDefaultValue()}
-                    onChange={(rateValue)=> getRateValue(rateValue, itemData.id)} 
-                    allowHalf={true} 
-                    count={10}
-                />
-            </div>
+      <div className="movie-item">
+        <div className="item-rate" style={rateStyle(itemData)}>
+          <span className="item-rate-value">
+            {itemData.vote_average.toFixed(1)}
+          </span>
         </div>
+        <div className="item-img">
+          <ItemImg />
+        </div>
+        <div className="item-content">
+          <h2 className="item-title">{itemData.title}</h2>
+          {itemData.release_date
+            ? this.PremiereSpan(itemData, premiereYear)
+            : null}
+          <div className="item-genres">{this.updateGenres(itemData)}</div>
+          <p className="item-description">{itemData.overview}</p>
+          <Rate
+            className="item-stars-rate"
+            value={putValue()}
+            onChange={rateValue => {
+              getRateValue(rateValue, itemData.id)
+              this.setState({ rate: rateValue })
+            }}
+            allowHalf={true}
+            count={10}
+          />
+        </div>
+      </div>
     )
+  }
 }
 export default Movieitem

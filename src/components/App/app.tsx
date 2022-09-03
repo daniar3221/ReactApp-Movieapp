@@ -1,172 +1,181 @@
-import React, { Component } from 'react';
+import React, { Component } from 'react'
 import './app.css'
-import Header from '../Header/header';
-import Movielist from '../Movielist/movielist';
-import { Pagination } from 'antd';
-import service_API from '../services/services';
-import Spinner from '../Spiner/spiner';
-import { getGenres, getMovieByName, rateMovie, newGuestSession, getRatedMovies } from '../services/services'
+import { Pagination } from 'antd'
+import Header from '../Header/header'
+import Movielist from '../Movielist/movielist'
+import {
+  service_API,
+  getGenres,
+  getMovieByName,
+  rateMovie,
+  newGuestSession,
+  getRatedMovies,
+} from '../services/services'
+import Spinner from '../Spiner/spiner'
 
-import { GenresProvider } from '../get-genres-context/get-genres-context';
+import { GenresProvider } from '../get-genres-context/get-genres-context'
 
-import IMovie from '../../types/types';
+import IMovie from '../../types/types'
 
 interface IState {
-  movies: Array<IMovie>,
-  mode: string,
-  page: number,
-  loading: boolean,
-  error: boolean,
-  allGenres: any,
-  totalResults: number,
-  searchMovieName: string,
-  guestToken: string,
-  noMoviesFound: boolean,
+  movies: Array<IMovie>
+  mode: string
+  page: number
+  loading: boolean
+  error: boolean
+  allGenres: any
+  totalResults: number
+  searchMovieName: string
+  guestToken: string
+  noMoviesFound: boolean
 }
 
 export default class App extends Component {
-  state : IState = {
+  state: IState = {
     movies: [],
     mode: 'search',
     page: 1,
     loading: true,
     error: false,
     allGenres: {
-      genres: [{id: 1, name: ''}]
-    } ,
+      genres: [{ id: 1, name: '' }],
+    },
     totalResults: 0,
     searchMovieName: '',
     guestToken: '',
-    noMoviesFound: false
-  } 
+    noMoviesFound: false,
+  }
 
   onError = () => {
     console.log('Something gone wrong')
   }
 
-  changeMode = ( value: string ) => {
-    this.setState(() => {
-      return {
-        mode: value
-      }
-    })
-    if (value === 'rated'){
-    getRatedMovies(this.state.guestToken)
-    .then(({results}) => {
-      this.setState({
-        movies: results
+  changeMode = (value: string) => {
+    this.setState({ mode: value })
+    if (value === 'rated') {
+      getRatedMovies(this.state.guestToken).then(({ results }) => {
+        console.log(results)
+        this.setState({
+          movies: results,
+        })
       })
-    })
-    } else{
+    } else {
       this.changePage(this.state.page)
     }
   }
 
   changePage = (page: number) => {
     this.setState({
-      page: page,
-      loading: true
+      page,
+      loading: true,
     })
-    
-    service_API(page).then((res) => this.setState({
-      movies: res.results,
-      loading: false
-    }))
+
+    service_API(page).then(res =>
+      this.setState({
+        movies: res.results,
+        loading: false,
+      })
+    )
   }
 
   onSearchMovieName = (movieName: string) => {
     if (!movieName) {
       this.setState({
-        noMoviesFound: false
+        noMoviesFound: false,
       })
       this.changePage(this.state.page)
     }
-    getMovieByName(movieName).then((data) => {
-      if (data.results.length === 0){
+    getMovieByName(movieName)
+      .then(data => {
+        if (data.results.length === 0) {
+          this.setState({
+            noMoviesFound: true,
+          })
+        } else {
+          this.setState({
+            noMoviesFound: false,
+          })
+        }
         this.setState({
-          noMoviesFound: true
+          movies: data.results,
         })
-      } else{
-        this.setState({
-          noMoviesFound: false
-        })
-      }
-      this.setState({
-        movies: data.results
       })
-    }).catch(() => {})
+      .catch(() => {
+        console.log('problem')
+      })
   }
 
-  onRateMovie = (rateValue: number, id: number) =>  {
-    rateMovie(id, rateValue, this.state.guestToken )
-  }
-
-  componentDidMount(){
-    newGuestSession().then((sessionID) => {
-      this.setState({
-        guestToken: sessionID.guest_session_id
-      })
-    })
-    service_API(this.state.page).then((res) => this.setState({
-      movies: res.results,
-      loading: false,
-      totalResults: res.total_pages,
-    })).catch(((e) => {
-      this.setState({
-        error: true,
-      })
-    }))
-    getGenres().then((res) => {
-      this.setState({
-        allGenres: res
-      })
-    })
-   
+  onRateMovie = (rateValue: number, id: number) => {
+    rateMovie(id, rateValue, this.state.guestToken)
   }
 
   NoMoviesFoundText = () => {
-    return (
-      <span className='no-movies-span'>Nothing found on your request</span>
-    )
+    return <span className="no-movies-span">Nothing found on your request</span>
   }
 
-  
+  componentDidMount() {
+    newGuestSession().then(sessionID => {
+      this.setState({
+        guestToken: sessionID.guest_session_id,
+      })
+    })
+    service_API(this.state.page)
+      .then(res =>
+        this.setState({
+          movies: res.results,
+          loading: false,
+          totalResults: res.total_pages,
+        })
+      )
+      .catch(() => {
+        this.setState({
+          error: true,
+        })
+      })
+    getGenres().then(res => {
+      this.setState({
+        allGenres: res,
+      })
+    })
+  }
 
-  render(){
-    const { movies, mode, loading, allGenres, noMoviesFound} = this.state
-    
+  render() {
+    const { movies, mode, loading, noMoviesFound } = this.state
+
     return (
-      
-      <div className='app'>
+      <div className="app">
         <GenresProvider value={this.state.allGenres}>
-          < Header mode = { mode } 
-          onMode = {(value: string) => this.changeMode(value)}
-          getMovieName = {(movieName: string) => {this.onSearchMovieName(movieName)}}
-        />
-          
-          {
-          loading ? 
-            < Spinner /> : 
-            noMoviesFound ? 
-            < this.NoMoviesFoundText /> :
-            < Movielist forGenres = {allGenres}  
-              movies = { movies } 
-              getRateValue = {(id: number, rateValue: number) => this.onRateMovie(rateValue, id)}/>
-          }
-          
-          < Pagination className='pagination' 
-            onChange={(page) => this.changePage(page)} 
-            pageSize = {20}
+          <Header
+            mode={mode}
+            onMode={(value: string) => this.changeMode(value)}
+            getMovieName={(movieName: string) => {
+              this.onSearchMovieName(movieName)
+            }}
+          />
+
+          {loading ? (
+            <Spinner />
+          ) : noMoviesFound ? (
+            <this.NoMoviesFoundText />
+          ) : (
+            <Movielist
+              movies={movies}
+              getRateValue={(id: number, rateValue: number) =>
+                this.onRateMovie(rateValue, id)
+              }
+              forGenres={[]}
+            />
+          )}
+
+          <Pagination
+            className="pagination"
+            onChange={page => this.changePage(page)}
+            pageSize={20}
             total={10000}
+            showSizeChanger={false}
           />
         </GenresProvider>
-    </div>
-
+      </div>
     )
   }
 }
-
-
-
-
-
