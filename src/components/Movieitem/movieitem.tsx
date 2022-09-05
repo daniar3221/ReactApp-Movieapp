@@ -126,6 +126,7 @@ class Movieitem extends Component<MovieItemProps> {
             className="item-stars-rate"
             value={putValue()}
             onChange={rateValue => {
+              console.log(rateValue, itemData.id)
               getRateValue(rateValue, itemData.id)
               this.setState({ rate: rateValue })
             }}
