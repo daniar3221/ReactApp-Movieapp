@@ -166,13 +166,15 @@ export default class App extends Component {
             />
           )}
 
-          <Pagination
-            className="pagination"
-            onChange={page => this.changePage(page)}
-            pageSize={20}
-            total={this.state.totalResults}
-            showSizeChanger={false}
-          />
+          {mode === 'search' ? (
+            <Pagination
+              className="pagination"
+              onChange={page => this.changePage(page)}
+              pageSize={20}
+              total={this.state.totalResults}
+              showSizeChanger={false}
+            />
+          ) : null}
         </GenresProvider>
       </div>
     )
