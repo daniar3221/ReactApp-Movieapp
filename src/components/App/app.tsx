@@ -53,11 +53,19 @@ export default class App extends Component {
   changeMode = (value: string) => {
     this.setState({ mode: value })
     if (value === 'rated') {
-      getRatedMovies(this.state.guestToken).then(({ results }) => {
-        this.setState({
-          movies: results,
+      getRatedMovies(this.state.guestToken)
+        .then(({ results }) => {
+          this.setState({
+            movies: results,
+            totalResults: results.total_pages,
+            loading: true,
+          })
         })
-      })
+        .finally(() => {
+          this.setState({
+            loading: false,
+          })
+        })
     } else {
       this.changePage(this.state.page)
     }
@@ -165,13 +173,13 @@ export default class App extends Component {
               forGenres={[]}
             />
           )}
-
           <Pagination
             className="pagination"
             onChange={page => this.changePage(page)}
             pageSize={20}
             total={this.state.totalResults}
             showSizeChanger={false}
+            hideOnSinglePage
           />
         </GenresProvider>
       </div>

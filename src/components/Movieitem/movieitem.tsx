@@ -103,6 +103,9 @@ class Movieitem extends Component<MovieItemProps> {
     }
 
     const putValue = () => {
+      if (sessionStorage.getItem(itemData.id)) {
+        return JSON.parse(sessionStorage.getItem(itemData.id) || '0')
+      }
       const defaultValue = itemData.rating ? itemData.rating : this.state.rate
       return defaultValue
     }
@@ -126,7 +129,10 @@ class Movieitem extends Component<MovieItemProps> {
             className="item-stars-rate"
             value={putValue()}
             onChange={rateValue => {
-              console.log(rateValue, itemData.id)
+              sessionStorage.setItem(
+                JSON.stringify(itemData.id),
+                rateValue.toString()
+              )
               getRateValue(rateValue, itemData.id)
               this.setState({ rate: rateValue })
             }}

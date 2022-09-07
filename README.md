@@ -1,2 +1,2 @@
-<!-- Versel Link -->
-<!-- https://react-app-movieapp.vercel.app/ -->
+Versel Link
+https://react-app-movieapp.vercel.app/
